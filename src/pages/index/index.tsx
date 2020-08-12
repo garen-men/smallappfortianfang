@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton } from 'taro-ui'
+import { AtButton,AtFab } from 'taro-ui'
 
 import "taro-ui/dist/style/components/button.scss" // 按需引入
 import './index.less'
@@ -9,7 +9,16 @@ export default class Index extends Component {
 
   componentWillMount () { }
 
-  componentDidMount () { }
+  componentDidMount () {
+    wx.cloud.init();
+    const db = wx.cloud.database();
+    const suggestions = db.collection('suggestions');
+    suggestions.get().then(res => {
+      // res.data 包含该记录的数据
+      console.log(res.data)
+    })
+
+  }
 
   componentWillUnmount () { }
 
@@ -25,7 +34,6 @@ export default class Index extends Component {
         <Text>Taro UI 支持 Vue 了吗？</Text>
         <AtButton type='primary' circle={true}>支持</AtButton>
         <Text>共建？</Text>
-        <AtButton type='secondary' circle={true}>来</AtButton>
       </View>
     )
   }
