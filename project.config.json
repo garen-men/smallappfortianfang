@@ -1,5 +1,6 @@
 {
-	"miniprogramRoot": ".dist/",
+	"miniprogramRoot": "dist/",
+	"cloudfunctionRoot": "cloud/functions/",
 	"projectname": "smallappfortianfang",
 	"description": "",
 	"appid": "wxe181ddc3aaa14f22",
@@ -19,12 +20,13 @@
 		"useIsolateContext": true,
 		"nodeModules": false,
 		"enhance": false,
-		"useCompilerModule": false,
+		"useCompilerModule": true,
 		"userConfirmedUseCompilerModuleSwitch": false,
 		"showShadowRootInWxmlPanel": false
 	},
 	"compileType": "miniprogram",
 	"simulatorType": "wechat",
 	"simulatorPluginLibVersion": {},
+	"cloudfunctionTemplateRoot": "cloudfunctionTemplate",
 	"condition": {}
 }
