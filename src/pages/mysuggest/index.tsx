@@ -1,25 +1,26 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtCard,AtMessage } from 'taro-ui';
-// import "taro-ui/dist/style/components/flex.scss";
+import { AtCard,AtToast } from 'taro-ui';
 import "taro-ui/dist/style/components/card.scss";
-import "taro-ui/dist/style/components/message.scss";
-
+import "taro-ui/dist/style/components/toast.scss";
 import './index.less';
-import Taro from '@tarojs/taro';
 
 
 interface IndexState {
   listData: {
+    _id:DB.DocumentId;
     content:string,
     date:number
-  }[];
+  }[] | DB.IDocumentData;
+  isOpenToast:boolean;
+
 }
 export default class Index extends Component<any,IndexState> {
   constructor (props) {
     super(props)
     this.state = {
-      listData :[]
+      listData :[],
+      isOpenToast:false
     }
   }
 
@@ -28,11 +29,10 @@ export default class Index extends Component<any,IndexState> {
     const suggestions = db.collection('suggestions');
     suggestions.orderBy('date', 'desc').get().then(res => {
       if(!res.data || !res.data.length){
-        Taro.atMessage({
-          'message': '暂无提交数据',
-          'type': "error",
-          'duration':700
+        this.setState({
+          isOpenToast:true
         })
+
       }else{
         this.setState({
           listData: res.data
@@ -65,8 +65,12 @@ export default class Index extends Component<any,IndexState> {
     const listData = this.state.listData;
     return (
       <View className='mysuggests'>
-        <AtMessage />
-        {
+          <AtToast
+            isOpened={this.state.isOpenToast}
+            text="暂无提交数据"
+            status="error"
+            duration={1500}
+            ></AtToast>        {
           listData.map((item,index)=>{
             return <View
               key={index}

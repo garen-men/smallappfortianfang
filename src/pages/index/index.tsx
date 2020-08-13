@@ -57,17 +57,7 @@ export default class Index extends Component<any,IndexState> {
     // });
   }
 
-//   getLogin () {
-//     wx.cloud
-//         .callFunction({
-//             name: "prod",
-//             data: {}
-//         })
-//         .then(res => {
-//             const context1 = JSON.stringify(res.result);
-//             console.log(context1)
-//         })
-// }
+
   componentWillUnmount () { }
 
   componentDidShow () { }
@@ -113,14 +103,14 @@ export default class Index extends Component<any,IndexState> {
         if(ratecol.data && ratecol.data.length===0){
           rates.add({
             data:{
-              rate:this.state.rate * 20,
+              rate:this.state.rate,
             }
           })
         }
         else if(ratecol.data && ratecol.data.length===1){
           rates.doc(ratecol.data[0]['_id']).update({
             data: {
-              rate:this.state.rate * 20,
+              rate:this.state.rate,
             }
           })
         }
@@ -143,7 +133,6 @@ export default class Index extends Component<any,IndexState> {
   }
 
   clickSubmit=()=>{
-    console.log(this.state.comment,1233)
     if(this.state.comment.trim() === ""){
       Taro.atMessage({
         'message': '请输入内容',

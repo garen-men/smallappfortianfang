@@ -1,3 +1,3 @@
 export default {
-  navigationBarTitleText: '后台页面'
+  navigationBarTitleText: '后台管理页面'
 }

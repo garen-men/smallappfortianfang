@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton,AtRate,AtTextarea,AtMessage,AtModal } from 'taro-ui';
+import { AtButton,AtRate,AtTextarea,AtModal } from 'taro-ui';
 import "taro-ui/dist/style/components/flex.scss";
 import "taro-ui/dist/style/components/button.scss"; // 按需引入
 import "taro-ui/dist/style/components/rate.scss";
 import "taro-ui/dist/style/components/icon.scss";
 import "taro-ui/dist/style/components/textarea.scss";
-import "taro-ui/dist/style/components/message.scss";
 import "taro-ui/dist/style/components/modal.scss";
 import './index.less';
 import Taro from '@tarojs/taro';
@@ -24,64 +23,59 @@ export default class Index extends Component<any,IndexState> {
   constructor (props) {
     super(props)
     this.state = {
-      islogin:false,
+      islogin:undefined,
       listData:[]
     }
-    // wx.setNavigationBarTitle({
-    //   title: "建议反馈"
-    // })
   }
 
 
-  handleClick (type?) {
-    Taro.atMessage({
-      'message': '消息通知',
-      'type': type,
-    })
-  }
+  // handleClick (type?) {
+  //   Taro.atMessage({
+  //     'message': '消息通知',
+  //     'type': type,
+  //   })
+  // }
 
   componentDidMount () {
-    // wx.cloud
-    //     .callFunction({
-    //         name: "removeall",
-    //         data: {}
-    //     })
-    //     .then(res => {
-    //         const context1 = JSON.stringify(res);
-    //         console.log(context1)
-    //     })
+    wx.cloud
+        .callFunction({
+            name: "removeall",
+            data: {}
+        })
+        .then(res => {
+            const context1 = JSON.stringify(res);
+            console.log(context1,1)
+        })
+
+
+
+    wx.cloud
+        .callFunction({
+            name: "prod",
+            data: {}
+        })
+        .then(res => {
+          this.setState({
+            islogin: res.result.manager
+          })
+          
+        })
+
   }
   componentWillUnmount () { }
 
 
-  handleClose=()=>{
-    this.setState({
-      isOpen:false
-    })
-  }
-  handleConfirm=()=>{
-    //db 发送
-    // 发送时禁用提交按钮,
-    // 返回成功 显示消息  清空输入 打开提交
-    // 返回失败 显示x消息  打开提交
-  }
-  clickSubmit=()=>{
-    this.setState({
-      isOpen:true
-    })
-  }
-
   render () {
+    if(this.state.islogin === undefined){
+      return <Text>loading</Text>
+    }
+    if(this.state.islogin === false){
+      return <Text>您不是管理员</Text>
+    }
     return (
       <View className='backend-page'>
-        <AtMessage />
         <Text>总评分: </Text>
 
-        {/*  size={30}*/}
-        {/*  margin={10}*/}
-        {/*  value={this.state.rate}*/}
-        {/*  onChange={this.handleRateChange.bind(this)}*/}
-        {/*/>*/}
         {/*<View style='height:30px' />*/}
         {/*<Text>反馈</Text>*/}
         {/*<Text>匿名评论，不会获取包括昵称、头像在内的任何隐私信息</Text>*/}
