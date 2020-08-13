@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton,AtFab,AtRate } from 'taro-ui';
-import "taro-ui/dist/style/components/button.scss" // 按需引入
+import { AtButton,AtRate,AtTextarea,AtMessage } from 'taro-ui';
+import "taro-ui/dist/style/components/flex.scss";
+import "taro-ui/dist/style/components/button.scss"; // 按需引入
 import "taro-ui/dist/style/components/rate.scss";
 import "taro-ui/dist/style/components/icon.scss";
+import "taro-ui/dist/style/components/textarea.scss";
+import "taro-ui/dist/style/components/message.scss";
 import './index.less';
 import Taro from '@tarojs/taro';
 
@@ -18,15 +21,25 @@ export default class Index extends Component<any,IndexState> {
     this.state = {
       value: 2
     }
+    wx.setNavigationBarTitle({
+      title: "建议反馈"
+    })
   }
   handleChange (value) {
     this.setState({
       value
     })
   }
-  componentWillMount () { }
+
+  handleClick (type?) {
+    Taro.atMessage({
+      'message': '消息通知',
+      'type': type,
+    })
+  }
 
   componentDidMount () {
+    this.handleClick()
     wx.cloud.init({
       // traceUser:true,
     });
@@ -40,7 +53,7 @@ export default class Index extends Component<any,IndexState> {
     this.getLogin()
   }
   getLogin () {
-    Taro.cloud
+    wx.cloud
         .callFunction({
             name: "prod",
             data: {}
@@ -58,17 +71,37 @@ export default class Index extends Component<any,IndexState> {
 
   render () {
     return (
+
       <View className='index'>
-        <Text>Hello world!</Text>
-        <AtButton type='primary'>I need Taro UI</AtButton>
-        <Text>Taro UI 支持 Vue 了吗？</Text>
-        <AtButton type='primary' circle={true}>支持</AtButton>
+        <AtMessage />
+
         <AtRate
-        size={30}
-        value={this.state.value}
-        onChange={this.handleChange.bind(this)}
-      />
+          size={30}
+          value={this.state.value}
+          onChange={this.handleChange.bind(this)}
+        />
+        <View style='height:30px' />
+        <AtTextarea
+          value={this.state.value}
+          onChange={this.handleChange.bind(this)}
+          maxLength={200}
+          placeholder='你的问题是...'
+          height={250}
+        />
+        <View style='height:20px' />
+        <View className='at-row at-row__justify--center at-row__align--center'>
+          <AtButton
+            type='secondary'
+            circle
+          >清除已输入</AtButton>
+          <AtButton
+            type='primary'
+            circle
+          >提交</AtButton>
+        </View>
+
       </View>
+
     )
   }
 }
