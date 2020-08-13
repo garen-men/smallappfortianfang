@@ -2,6 +2,13 @@ import { Component } from 'react'
 import './app.less'
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    wx.cloud.init({
+      // traceUser:true,
+      env:'tianfang-test-dfn71'
+    });
+  }
 
   componentDidMount () {
 
