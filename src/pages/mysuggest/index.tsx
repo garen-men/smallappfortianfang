@@ -20,7 +20,7 @@ export default class Index extends Component<any,IndexState> {
     super(props)
     this.state = {
       listData :[],
-      isOpenToast:false
+      isOpenToast:false,
     }
   }
 
@@ -67,10 +67,12 @@ export default class Index extends Component<any,IndexState> {
       <View className='mysuggests'>
           <AtToast
             isOpened={this.state.isOpenToast}
-            text="暂无提交数据"
-            status="error"
+            text='暂无提交数据'
+            status='error'
             duration={1500}
-            ></AtToast>        {
+          ></AtToast>
+
+        {
           listData.map((item,index)=>{
             return <View
               key={index}
@@ -78,6 +80,7 @@ export default class Index extends Component<any,IndexState> {
             >
               <AtCard
                 title={`${this.formatTime(item.date)}`}
+                extra={item.label || "无"}
               >
                 {item.content}
               </AtCard>
@@ -85,6 +88,7 @@ export default class Index extends Component<any,IndexState> {
 
           })
         }
+        <Text className='small'>说明：最多展示20条反馈</Text>
 
       </View>
 

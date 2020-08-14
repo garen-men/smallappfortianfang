@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton,AtRate,AtTextarea,AtMessage,AtModal } from 'taro-ui';
+import { AtButton,AtRate,AtTextarea,AtMessage,AtModal,AtInput,AtTag } from 'taro-ui';
 import "taro-ui/dist/style/components/flex.scss";
 import "taro-ui/dist/style/components/button.scss"; // 按需引入
 import "taro-ui/dist/style/components/rate.scss";
@@ -8,6 +8,8 @@ import "taro-ui/dist/style/components/icon.scss";
 import "taro-ui/dist/style/components/textarea.scss";
 import "taro-ui/dist/style/components/message.scss";
 import "taro-ui/dist/style/components/modal.scss";
+import "taro-ui/dist/style/components/input.scss";
+import "taro-ui/dist/style/components/tag.scss";
 import './index.less';
 import Taro from '@tarojs/taro';
 
@@ -16,6 +18,9 @@ interface IndexState {
   rate: number;
   comment:string;
   disableBtn: boolean;
+  name: string;
+  label:string;
+  usualTips:string;
 }
 
 export default class Index extends Component<any,IndexState> {
@@ -25,7 +30,10 @@ export default class Index extends Component<any,IndexState> {
       isOpen:false,
       rate: 5,
       comment: "",
-      disableBtn:false
+      disableBtn:false,
+      name: "",
+      label:"",
+      usualTips:""
     }
     const db = wx.cloud.database();
     const rates = db.collection('rates');
@@ -42,27 +50,33 @@ export default class Index extends Component<any,IndexState> {
       rate
     })
   }
+  handleNameChange(name) {
+    this.setState({
+      name
+    })
+  }
+  handleLabelChange({name}){
+    this.setState({
+      label:name
+    })
+  }
   handleCommentChange (comment) {
     this.setState({
       comment
     })
   }
 
-  componentDidMount () {
-    // const db = wx.cloud.database();
-    // const suggestions = db.collection('suggestions');
-    // suggestions.get().then(res => {
-    //   // res.data 包含该记录的数据
-    //   console.log(res.data)
-    // });
+  async componentDidMount () {
+    const usual= await wx.cloud.callFunction({
+      name: "getUsual",
+      data: {}
+    })
+    this.setState({
+      usualTips:usual.result.tip
+    })
   }
 
-
   componentWillUnmount () { }
-
-  componentDidShow () { }
-
-  componentDidHide () { }
 
   handleClose=()=>{
     this.setState({
@@ -82,10 +96,11 @@ export default class Index extends Component<any,IndexState> {
     suggestions.add({
       data:{
         content:this.state.comment.trim(),
-        date:+ new Date()
+        date:+ new Date(),
+        name:this.state.name.trim(),
+        label:this.state.label
       }
     }).then(res=>{
-
       // 返回成功 显示消息  清空输入 打开提交
       // 返回失败 显示x消息  打开提交
       Taro.atMessage({
@@ -104,6 +119,7 @@ export default class Index extends Component<any,IndexState> {
           rates.add({
             data:{
               rate:this.state.rate,
+              date:+ new Date()
             }
           })
         }
@@ -111,6 +127,7 @@ export default class Index extends Component<any,IndexState> {
           rates.doc(ratecol.data[0]['_id']).update({
             data: {
               rate:this.state.rate,
+              date:+ new Date()
             }
           })
         }
@@ -133,13 +150,20 @@ export default class Index extends Component<any,IndexState> {
   }
 
   clickSubmit=()=>{
-    if(this.state.comment.trim() === ""){
+    if(this.state.comment.trim() === "" ){
       Taro.atMessage({
         'message': '请输入内容',
         'type': 'error',
         'duration':700
       })
-    }else{
+    }else if(this.state.label === "" ){
+      Taro.atMessage({
+        'message': '请输入类型',
+        'type': 'error',
+        'duration':700
+      })
+    }
+    else{
       this.setState({
         isOpen:true
       })
@@ -162,7 +186,8 @@ export default class Index extends Component<any,IndexState> {
     return (
       <View className='index'>
         <AtMessage />
-        <Text className='large'>评分</Text>
+        <Text className='large'>{`说明：${this.state.usualTips || '无'}`}</Text>
+        <Text className='large'>评分：</Text>
         <View className='large'>
         <AtRate
           size={30}
@@ -171,8 +196,57 @@ export default class Index extends Component<any,IndexState> {
           onChange={this.handleRateChange.bind(this)}
         />
         </View>
-        <View style='height:20px' />
-        <Text className='large'>反馈</Text>
+        <AtInput
+          name='value'
+          title='昵称：'
+          type='text'
+          placeholder='可选填'
+          border={false}
+          value={this.state.name}
+          onChange={this.handleNameChange.bind(this)}
+        />
+        <View className='at-row at-row__justify--between at-row__align--center'>
+          <Text className='large'>类型：</Text>
+          <AtTag
+            name='训练'
+            type='primary'
+            circle
+            active={this.state.label === '训练'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            训练
+          </AtTag>
+          <AtTag
+            name='管理'
+            type='primary'
+            circle
+            active={this.state.label === '管理'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            管理
+          </AtTag>
+          <AtTag
+            name='后勤'
+            type='primary'
+            circle
+            active={this.state.label === '后勤'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            后勤
+          </AtTag>
+          <AtTag
+            name='其它'
+            type='primary'
+            circle
+            active={this.state.label === '其它'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            其它
+          </AtTag>
+        </View>
+        <View style='height:10px' />
+
+        <Text className='large'>反馈：</Text>
         <Text className='small'>匿名评论，不会获取包括昵称、头像在内的任何隐私信息</Text>
         <AtTextarea
           value={this.state.comment}

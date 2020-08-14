@@ -1,22 +1,25 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton,AtRate,AtTextarea,AtModal } from 'taro-ui';
+import {AtButton, AtCard, AtInput,AtToast} from 'taro-ui';
 import "taro-ui/dist/style/components/flex.scss";
 import "taro-ui/dist/style/components/button.scss"; // 按需引入
-import "taro-ui/dist/style/components/rate.scss";
-import "taro-ui/dist/style/components/icon.scss";
-import "taro-ui/dist/style/components/textarea.scss";
-import "taro-ui/dist/style/components/modal.scss";
+import "taro-ui/dist/style/components/card.scss";
+import "taro-ui/dist/style/components/input.scss";
+import "taro-ui/dist/style/components/toast.scss";
 import './index.less';
-import Taro from '@tarojs/taro';
+
 
 interface IndexState {
   listData: {
     content:string,
-    date:number
+    date:number,
+    name:string,
+    label:string
   }[];
   islogin:boolean;
-
+  rate:number;
+  notice:string;
+  sunmitbtn:boolean;
 }
 
 export default class Index extends Component<any,IndexState> {
@@ -24,46 +27,69 @@ export default class Index extends Component<any,IndexState> {
     super(props)
     this.state = {
       islogin:undefined,
-      listData:[]
+      listData:[],
+      rate:0,
+      notice:"",
+      sunmitbtn:false
     }
   }
 
 
-  // handleClick (type?) {
-  //   Taro.atMessage({
-  //     'message': '消息通知',
-  //     'type': type,
-  //   })
-  // }
+  async componentDidMount () {
+    // wx.cloud
+    //     .callFunction({
+    //         name: "removeall",
+    //         data: {}
+    //     })
+    //     .then(res => {
+    //         const context1 = JSON.stringify(res);
+    //         console.log(context1,1)
+    //     })
 
-  componentDidMount () {
-    wx.cloud
-        .callFunction({
-            name: "removeall",
-            data: {}
-        })
-        .then(res => {
-            const context1 = JSON.stringify(res);
-            console.log(context1,1)
-        })
-
-
-
-    wx.cloud
-        .callFunction({
+    const res = await wx.cloud.callFunction({
             name: "prod",
             data: {}
         })
-        .then(res => {
-          this.setState({
-            islogin: res.result.manager
-          })
-          
-        })
-
+    this.setState({
+      islogin: res.result.manager
+    })
+    const rateres = await wx.cloud.callFunction({
+      name: "calrate",
+      data: {}
+    })
+    this.setState({
+      rate: rateres.result.rate || 0
+    })
+    const  alldata= await wx.cloud.callFunction({
+      name: "getAlldata",
+      data: {}
+    })
+    this.setState({
+      listData: alldata.result.data
+    })
   }
   componentWillUnmount () { }
-
+  changeNotice(notice){
+    this.setState({
+      notice
+    })
+  }
+  onsubmit= async ()=>{
+    await wx.cloud.callFunction({
+      name: "upNotice",
+      data: {
+        notice: this.state.notice
+      }
+    })
+    this.setState({
+      sunmitbtn:true
+    })
+  }
+  onreset = ()=>{
+    this.setState({
+      notice:""
+    })
+  }
 
   render () {
     if(this.state.islogin === undefined){
@@ -72,47 +98,66 @@ export default class Index extends Component<any,IndexState> {
     if(this.state.islogin === false){
       return <Text>您不是管理员</Text>
     }
+    const listData = this.state.listData;
     return (
       <View className='backend-page'>
-        <Text>总评分: </Text>
+        <AtToast isOpened={this.state.sunmitbtn} text='成功' duration={500}></AtToast>
+        <Text>{"总评分: " + this.state.rate}</Text>
+        <View>
+          <AtInput
+            name='value'
+            title='自定义说明'
+            type='text'
+            placeholder='提交后可展示在首页,也可不填'
+            border={false}
+            value={this.state.notice}
+            onChange={this.changeNotice.bind(this)}
+          />
+          <View className='changenotice at-row at-row__justify--center at-row__align--center'>
+          <AtButton  onClick={this.onreset}>重置</AtButton>
+            <AtButton type='primary' onClick={this.onsubmit}>提交</AtButton>
+          </View>
+        </View>
 
-        {/*<View style='height:30px' />*/}
-        {/*<Text>反馈</Text>*/}
-        {/*<Text>匿名评论，不会获取包括昵称、头像在内的任何隐私信息</Text>*/}
-        {/*<AtTextarea*/}
-        {/*  value={this.state.comment}*/}
-        {/*  onChange={this.handleCommentChange.bind(this)}*/}
-        {/*  maxLength={200}*/}
-        {/*  placeholder='您的反馈是...'*/}
-        {/*  height={250}*/}
-        {/*/>*/}
-        {/*<View style='height:20px' />*/}
-        {/*<View className='at-row at-row__justify--center at-row__align--center'>*/}
-        {/*  <AtButton*/}
-        {/*    type='secondary'*/}
-        {/*    circle*/}
-        {/*  >查看我的反馈</AtButton>*/}
-        {/*  <AtButton*/}
-        {/*    type='primary'*/}
-        {/*    circle*/}
-        {/*    onClick={this.clickSubmit}*/}
-        {/*  >提交</AtButton>*/}
-        {/*</View>*/}
-        {/*<View className='skip-backend'>*/}
-        {/*  /!*<View style='height:100px' className='at-col'>D</View>*!/*/}
-        {/*  <Text>{">>转到后台管理页面"}</Text>*/}
-        {/*</View>*/}
-        {/*<AtModal*/}
-        {/*  isOpened={this.state.isOpen}*/}
-        {/*  cancelText='取消'*/}
-        {/*  confirmText='确认'*/}
-        {/*  onClose={this.handleClose}*/}
-        {/*  onCancel={this.handleClose}*/}
-        {/*  onConfirm={this.handleConfirm}*/}
-        {/*  content='确定要提交吗，提交后不可修改'*/}
-        {/*/>*/}
+        {
+          listData.map((item,index)=>{
+            const lastId = item['_openid'].substr(item['_openid'].length-4);
+            const itemName = item.name ? item.name : (`游客${lastId}`);
+            return <View
+              key={index}
+              className='suggestItem'
+            >
+              <AtCard
+                title={itemName}
+                note={`${this.formatTime(item.date)}`}
+                extra={item.label || "无"}
+              >
+                {item.content}
+              </AtCard>
+              {/*<Text>删除</Text>*/}
+            </View>
+          })
+        }
+        <Text>目前最多显示100条记录,待完善</Text>
       </View>
-
     )
+  }
+
+  formatTime(dateNum) {
+    const date = new Date(parseInt(dateNum));
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+
+    const hour = date.getHours()
+    const minute = date.getMinutes()
+    const second = date.getSeconds()
+
+    return [year, month, day].map(this.formatNumber).join('/') + ' ' + [hour, minute, second].map(this.formatNumber).join(':')
+  }
+
+  formatNumber(n) {
+    n = n.toString();
+    return n[1] ? n : '0' + n
   }
 }

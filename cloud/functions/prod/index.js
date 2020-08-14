@@ -1,4 +1,4 @@
-// 云函数入口文件
+// 是否管理员
 const cloud = require('wx-server-sdk')
 
 cloud.init()

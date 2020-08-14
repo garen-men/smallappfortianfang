@@ -1,4 +1,4 @@
-// 删除我的数据库记录
+// 得到通用信息
 const cloud = require('wx-server-sdk')
 
 cloud.init()
@@ -7,7 +7,6 @@ cloud.init()
 exports.main = async (event, context) => {
   const db = cloud.database();
 
-  return await db.collection('suggestions').where({
-    _openid: "ozttr5ZVt9086MKIFL_IxLL_F6ls"
-  }).remove()
+  const usual = await db.collection('usual').get();
+  return usual.data[0]
 }
