@@ -66,16 +66,24 @@ export default class Index extends Component<any,IndexState> {
     })
   }
 
-  async componentDidMount () {
-    const usual= await wx.cloud.callFunction({
+  // async componentDidMount () {
+  //   const usual= await wx.cloud.callFunction({
+  //     name: "getUsual",
+  //     data: {}
+  //   })
+  //   this.setState({
+  //     usualTips:usual.result.tip
+  //   })
+  // }
+  async componentDidShow() {
+    const usual = await wx.cloud.callFunction({
       name: "getUsual",
       data: {}
     })
     this.setState({
-      usualTips:usual.result.tip
+      usualTips: usual.result.tip
     })
   }
-
   componentWillUnmount () { }
 
   handleClose=()=>{
@@ -186,7 +194,7 @@ export default class Index extends Component<any,IndexState> {
     return (
       <View className='index'>
         <AtMessage />
-        <Text className='large'>{`说明：${this.state.usualTips || '无'}`}</Text>
+        <Text className='large'>{`说明：${this.state.usualTips || '请注意保密!!!'}`}</Text>
         <Text className='large'>评分：</Text>
         <View className='large'>
         <AtRate

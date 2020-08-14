@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import { View, Text } from '@tarojs/components';
-import {AtButton, AtCard, AtInput,AtToast} from 'taro-ui';
+import { AtButton, AtCard, AtInput, AtDivider, AtTag, AtIcon, AtModal} from 'taro-ui';
 import "taro-ui/dist/style/components/flex.scss";
 import "taro-ui/dist/style/components/button.scss"; // 按需引入
 import "taro-ui/dist/style/components/card.scss";
 import "taro-ui/dist/style/components/input.scss";
-import "taro-ui/dist/style/components/toast.scss";
+import "taro-ui/dist/style/components/divider.scss";
+import "taro-ui/dist/style/components/tag.scss";
+import "taro-ui/dist/style/components/icon.scss";
+import "taro-ui/dist/style/components/modal.scss";
+
 import './index.less';
 
 
@@ -19,10 +23,16 @@ interface IndexState {
   islogin:boolean;
   rate:number;
   notice:string;
-  sunmitbtn:boolean;
+  sunmitbtn: boolean;
+  dlebtn: boolean;
+  label: string;
+  count: number;
 }
 
-export default class Index extends Component<any,IndexState> {
+export default class Index extends Component<any, IndexState> {
+
+  private willDelId
+
   constructor (props) {
     super(props)
     this.state = {
@@ -30,7 +40,10 @@ export default class Index extends Component<any,IndexState> {
       listData:[],
       rate:0,
       notice:"",
-      sunmitbtn:false
+      sunmitbtn: false,
+      dlebtn: false,
+      label: "",
+      count: 0,
     }
   }
 
@@ -53,36 +66,80 @@ export default class Index extends Component<any,IndexState> {
     this.setState({
       islogin: res.result.manager
     })
-    const rateres = await wx.cloud.callFunction({
-      name: "calrate",
-      data: {}
-    })
-    this.setState({
-      rate: rateres.result.rate || 0
-    })
-    const  alldata= await wx.cloud.callFunction({
-      name: "getAlldata",
-      data: {}
-    })
-    this.setState({
-      listData: alldata.result.data
-    })
+    if (this.state.islogin) {
+      const alldataPromise = wx.cloud.callFunction({
+        name: "getAlldata",
+        data: {
+          limit:10,
+          offset:0,
+          login:true
+        }
+      })
+
+      const ratePromise =  wx.cloud.callFunction({
+        name: "calrate",
+        data: {}
+      })
+
+      const alldata = await alldataPromise;
+      const rateres = await ratePromise;
+
+      this.setState({
+        listData: alldata.result.data,
+        rate: rateres.result.rate || 0,
+        count: rateres.result.count || 0,
+      })
+    }
+
   }
-  componentWillUnmount () { }
+  componentWillUnmount() { }
+
   changeNotice(notice){
     this.setState({
       notice
     })
   }
+  handleLabelChange({name}) {
+    this.setState({
+      label: name
+    });
+    wx.cloud.callFunction({
+      name: "getAlldata",
+      data: {
+        limit: 10,
+        offset: 0,
+        label: name,
+      }
+    }).then((res) => {
+      this.setState({
+        listData: res.result.data
+      })
+    })
+  }
   onsubmit= async ()=>{
+    this.setState({
+      sunmitbtn:true
+    })
+  }
+  handleClose = () => {
+      this.setState({
+        sunmitbtn: false
+      })
+  }
+  handleNoticeConfirm = async() => {
+    this.setState({
+      sunmitbtn: false
+    })
     await wx.cloud.callFunction({
       name: "upNotice",
       data: {
         notice: this.state.notice
       }
     })
-    this.setState({
-      sunmitbtn:true
+    wx.showToast({
+      title: '提交成功',
+      icon: 'success',
+      duration: 700
     })
   }
   onreset = ()=>{
@@ -91,19 +148,74 @@ export default class Index extends Component<any,IndexState> {
     })
   }
 
-  render () {
-    if(this.state.islogin === undefined){
+  deleteitem(id) {
+    // console.log('%ccomponentDid1Show: ', 'color: MidnightBlue; background: Aquamarine; font-size: 20px;',id);
+    this.willDelId = id;
+    this.setState({
+      dlebtn: true
+    })
+  }
+  handleDelClose = () => {
+    this.setState({
+      dlebtn: false
+    })
+  }
+  handleDelConfirm = () => {
+    this.setState({
+      dlebtn: false
+    })
+    if (!this.willDelId) {
+      return
+    }
+    wx.cloud.callFunction({
+      name: "delitem",
+      data: {
+        id: this.willDelId
+      }
+    }).then((res) => {
+      wx.showToast({
+        title: res.result.msg || "",
+        icon: 'success',
+        duration: 700
+      })
+
+    })
+    this.willDelId = undefined;
+  }
+
+  render() {
+    if (this.state.islogin === undefined) {
       return <Text>loading</Text>
     }
-    if(this.state.islogin === false){
+    if (this.state.islogin === false) {
       return <Text>您不是管理员</Text>
     }
     const listData = this.state.listData;
     return (
       <View className='backend-page'>
-        <AtToast isOpened={this.state.sunmitbtn} text='成功' duration={500}></AtToast>
-        <Text>{"总评分: " + this.state.rate}</Text>
-        <View>
+        <AtModal
+          isOpened={this.state.sunmitbtn}
+          title='提交公告'
+          cancelText='取消'
+          confirmText='确认'
+          onClose={this.handleClose}
+          onCancel={this.handleClose}
+          onConfirm={this.handleNoticeConfirm}
+          content='一但提交，将会推送给全体人员，内容会覆盖首页说明区域'
+        />
+        <AtModal
+          isOpened={this.state.dlebtn}
+          title='删除指定记录'
+          cancelText='取消'
+          confirmText='确认'
+          onClose={this.handleDelClose}
+          onCancel={this.handleDelClose}
+          onConfirm={this.handleDelConfirm}
+          content='谨慎，一旦删除，该条数据无法找回'
+        />
+        <AtDivider content='首页设置' fontColor='#2d8cf0' lineColor='#2d8cf0' />
+        <Text className='large'>{"总评分: " + this.state.rate}</Text>
+        <View >
           <AtInput
             name='value'
             title='自定义说明'
@@ -113,16 +225,64 @@ export default class Index extends Component<any,IndexState> {
             value={this.state.notice}
             onChange={this.changeNotice.bind(this)}
           />
-          <View className='changenotice at-row at-row__justify--center at-row__align--center'>
-          <AtButton  onClick={this.onreset}>重置</AtButton>
-            <AtButton type='primary' onClick={this.onsubmit}>提交</AtButton>
+          <View className='at-row at-row__justify--center at-row__align--center'>
+            <AtButton  onClick={this.onreset} size={'small'}>重置</AtButton>
+            <AtButton type='primary' size={'small'} onClick={this.onsubmit}>提交</AtButton>
           </View>
         </View>
-
+        <AtDivider content='列表管理' fontColor='#2d8cf0' lineColor='#2d8cf0' />
+        <Text className='large'>{"截至上次登录，共新增了" + this.state.count + "条建议"}</Text>
+        <View className='tagview at-row at-row__justify--between at-row__align--center'>
+          <AtTag
+            name=''
+            type='primary'
+            circle
+            active={this.state.label === ''}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            全部
+          </AtTag>
+          <AtTag
+            name='训练'
+            type='primary'
+            circle
+            active={this.state.label === '训练'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            训练
+          </AtTag>
+          <AtTag
+            name='管理'
+            type='primary'
+            circle
+            active={this.state.label === '管理'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            管理
+          </AtTag>
+          <AtTag
+            name='后勤'
+            type='primary'
+            circle
+            active={this.state.label === '后勤'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            后勤
+          </AtTag>
+          <AtTag
+            name='其它'
+            type='primary'
+            circle
+            active={this.state.label === '其它'}
+            onClick={this.handleLabelChange.bind(this)}
+          >
+            其它
+          </AtTag>
+        </View>
         {
           listData.map((item,index)=>{
             const lastId = item['_openid'].substr(item['_openid'].length-4);
-            const itemName = item.name ? item.name : (`游客${lastId}`);
+            const itemName = item.name ? (`游客${lastId}-${item.name}`) : (`游客${lastId}`);
             return <View
               key={index}
               className='suggestItem'
@@ -134,11 +294,16 @@ export default class Index extends Component<any,IndexState> {
               >
                 {item.content}
               </AtCard>
-              {/*<Text>删除</Text>*/}
+              {/* <View className='itemdelete' > */}
+                {/* <AtButton type='secondary' size={'small'} onClick={this.onsubmit}>删除</AtButton> */}
+              <AtIcon value='trash' size='20' color='#F00' onClick={this.deleteitem.bind(this, item['_id'])}></AtIcon>
+              {/* </View> */}
             </View>
           })
         }
         <Text>目前最多显示100条记录,待完善</Text>
+        <Text>拉黑用户功能,待增加</Text>
+        <Text>统计各类型数量展示角标功能,待增加</Text>
       </View>
     )
   }

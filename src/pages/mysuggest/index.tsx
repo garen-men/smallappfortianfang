@@ -84,11 +84,12 @@ export default class Index extends Component<any,IndexState> {
               >
                 {item.content}
               </AtCard>
+              
             </View>
 
           })
         }
-        <Text className='small'>说明：最多展示20条反馈</Text>
+        <Text className='small'>说明：最多只展示最近20条反馈</Text>
 
       </View>
 
