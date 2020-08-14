@@ -9,9 +9,9 @@ exports.main = async (event, context) => {
     const db = cloud.database();
     const rateList = await db.collection('rates').orderBy('date', 'desc').get();
     const avarage = rateList.data.reduce((pre,cur)=>{
-      return (pre.rate||0)+(cur.rate||0)
-    })/(rateList.data.length||1)
-    return {rate:(avarage * 20).toFixed(2)}
+      return pre+(cur.rate||0)
+    },0)
+    return {rate:(avarage/(rateList.data.length||1) * 20).toFixed(2)}
   // }catch(e){
   //   return {
   //     rate:0,
