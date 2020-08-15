@@ -27,6 +27,8 @@ interface IndexState {
   dlebtn: boolean;
   label: string;
   count: number;
+  countall: number;
+  countperson: number;
 }
 
 export default class Index extends Component<any, IndexState> {
@@ -44,6 +46,8 @@ export default class Index extends Component<any, IndexState> {
       dlebtn: false,
       label: "",
       count: 0,
+      countall: 0,
+      countperson: 0,
     }
   }
 
@@ -88,6 +92,8 @@ export default class Index extends Component<any, IndexState> {
         listData: alldata.result.data,
         rate: rateres.result.rate || 0,
         count: rateres.result.count || 0,
+        countall: rateres.result.countall || 0,
+        countperson: rateres.result.countperson || 0,
       })
     }
 
@@ -231,7 +237,8 @@ export default class Index extends Component<any, IndexState> {
           </View>
         </View>
         <AtDivider content='列表管理' fontColor='#2d8cf0' lineColor='#2d8cf0' />
-        <Text className='large'>{"截至上次登录，共新增了" + this.state.count + "条建议"}</Text>
+        <Text className='large'>{"有 " + this.state.countperson + " 人登录过，共提交了 " + this.state.countall + " 条建议"}</Text>
+        <Text className='large'>{"截至上次查看，又新增了 " + this.state.count + " 条建议"}</Text>
         <View className='tagview at-row at-row__justify--between at-row__align--center'>
           <AtTag
             name=''
