@@ -299,7 +299,7 @@ export default class Index extends Component<any, IndexState> {
                 note={`${this.formatTime(item.date)}`}
                 extra={item.label || "无"}
               >
-                {item.content}
+                {this.decrypt(item.content)}
               </AtCard>
               {/* <View className='itemdelete' > */}
                 {/* <AtButton type='secondary' size={'small'} onClick={this.onsubmit}>删除</AtButton> */}
@@ -331,5 +331,16 @@ export default class Index extends Component<any, IndexState> {
   formatNumber(n) {
     n = n.toString();
     return n[1] ? n : '0' + n
+  }
+
+  private decrypt = (str) => {
+    if (typeof str !== 'string' || !str) {
+      return ''
+    }
+    let newstr = '';
+    for (let i = 0; i < str.length; i++) {
+      newstr += String.fromCharCode(str.charCodeAt(i) - 9)
+    }
+    return newstr
   }
 }

@@ -103,7 +103,7 @@ export default class Index extends Component<any,IndexState> {
     const rates = db.collection('rates');
     suggestions.add({
       data:{
-        content:this.state.comment.trim(),
+        content:this.encrypt(this.state.comment.trim()),
         date:+ new Date(),
         name:this.state.name.trim(),
         label:this.state.label
@@ -292,5 +292,15 @@ export default class Index extends Component<any,IndexState> {
       </View>
 
     )
+  }
+  private encrypt = (str) => {
+    if (typeof str !== 'string' || !str) {
+      return ''
+    }
+    let newstr = '';
+    for (let i = 0; i < str.length; i++){
+      newstr += String.fromCharCode(str.charCodeAt(i)+9)
+    }
+    return newstr
   }
 }

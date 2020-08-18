@@ -82,7 +82,7 @@ export default class Index extends Component<any,IndexState> {
                 title={`${this.formatTime(item.date)}`}
                 extra={item.label || "无"}
               >
-                {item.content}
+                {this.decrypt(item.content)}
               </AtCard>
               
             </View>
@@ -94,5 +94,16 @@ export default class Index extends Component<any,IndexState> {
       </View>
 
     )
+  }
+
+  private decrypt = (str) => {
+    if (typeof str !== 'string' || !str) {
+      return ''
+    }
+    let newstr = '';
+    for (let i = 0; i < str.length; i++) {
+      newstr += String.fromCharCode(str.charCodeAt(i) - 9)
+    }
+    return newstr
   }
 }
