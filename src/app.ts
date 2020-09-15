@@ -6,8 +6,8 @@ class App extends Component {
     super(props);
     wx.cloud.init({
       // traceUser:true,
-      env:'tianfang-prod-q4y3q'
-      // env:'tianfang-test-dfn71'
+      // env:'tianfang-prod-q4y3q'
+      env:'tianfang-test-dfn71'
     });
   }
 
